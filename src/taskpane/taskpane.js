@@ -12,10 +12,52 @@ Office.onReady((info) => {
         document.getElementById("SaveRFP").onclick = SaveRFP;
         document.getElementById("SaveRFI").onclick = SaveRFI;
         document.getElementById("SaveTransmittal").onclick = SaveTransmittal;
+        document.getElementById("copy-from-url").onclick = () => tryCatch(copyWorkbookFromUrl);
         document.getElementById("sideload-msg").style.display = "none";
         document.getElementById("app-body").style.display = "flex";
     }
 });
+async function copyWorkbookFromUrl() {
+    const url = "https://dnorthway.github.io/Project%20Template.xlsx";
+
+    try {
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
+
+        await Excel.run(async (context) => {
+            // Convert the array buffer to a Base64-encoded string
+            const base64Content = arrayBufferToBase64(arrayBuffer);
+
+            // Create a new workbook using the Base64-encoded content
+            Excel.createWorkbook(base64Content);
+
+            await context.sync();
+        });
+    } catch (error) {
+        console.error("Error copying workbook from URL:", error);
+    }
+}
+
+// Helper function to convert ArrayBuffer to Base64
+function arrayBufferToBase64(buffer) {
+    let binary = "";
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+
+    return window.btoa(binary);
+}
+
+async function tryCatch(callback) {
+    try {
+        await callback();
+    } catch (error) {
+        console.error(error);
+    }
+}
 async function SavePO() {
     await Excel.run(async (context) => {
         const sheet = context.workbook.worksheets.getItem("POData");
